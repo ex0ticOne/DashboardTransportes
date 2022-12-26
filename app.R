@@ -34,14 +34,15 @@ ui <- dashboardPage(cabecalho, lateral, corpo, skin = "black",
 server <- function(input, output) {
   
   output$selecao_companhia <- renderUI(selectInput("companhia_selecionada", 
-                                                   label = "Selecione a companhia", choices = lista_companhias$Noenti))
+                                                   label = "Selecione a companhia", choices = lista_companhias$Noenti, 
+                                                   selected = "PORTO SEGURO COMPANHIA DE SEGUROS GERAIS"))
   
   output$selecao_UF <- renderUI(selectInput("UF_selecionada", label = "Selecione a UF", choices = c("AC", "AL", "AM", "BA", "CE",
                                                                                                     "DF", "ES", "GO", "MA", "MG", 
                                                                                                     "MS", "MT", "PA", "PB", "PE",
                                                                                                     "PI", "PR", "RJ", "RN", "RO",
                                                                                                     "RR","RS", "SC", "SE", "SP", 
-                                                                                                    "TO")))
+                                                                                                    "TO"), selected = "SP"))
   
   output$selecao_ramo <- renderUI(selectInput("ramo_selecionado", label = "Selecione o ramo", choices = c("Transporte Nacional" = 621, 
                                                                                                           "Transporte Internacional" = 622)))
@@ -76,8 +77,7 @@ server <- function(input, output) {
       
     plot_projecao <- dyplot.prophet(modelo, projecao, 
                                     main = paste0(lista_companhias$Noenti[lista_companhias$Noenti == input$companhia_selecionada], " - ", 
-                                                  input$UF_selecionada, " - ", 
-                                                  input$ramo_selecionado),
+                                                  input$UF_selecionada),
                                     xlab = "Linha Temporal",
                                     ylab = "Escala Logarítmica de Sinistralidade")
     

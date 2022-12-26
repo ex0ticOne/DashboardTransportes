@@ -1,0 +1,9 @@
+# Dashboard de Sinistros de Seguro de Transportes
+
+A fonte dos dados é o dataset fornecido pela SUSEP, em seu portal oficial.
+
+O dashboard carrega os modelos conforme a seleção do usuário, e faz as projeções em tempo real conforme a quantidade desejada de anos futuros.
+
+Durante a produção dos modelos, o script converte a série de dados para escala logarítmica de base 10, na intenção de suavizar a influência dos diferentes patamares de indenização
+
+Para ver o dashboard funcionando, acesse:

@@ -5,24 +5,30 @@ library(prophet)
 library(readr)
 library(dygraphs)
 
+#Source do Prophet e lista de companhias
 source('ProphetPersonalizado.R')
 lista_companhias <- read_rds('lista_companhias.rds')
 
-cabecalho <- dashboardHeader(title = "Dashboard de Transportes", 
-                             titleWidth = "350")
+cabecalho <- dashboardHeader(title = "Dashboard de Sinistros de Transportes", 
+                             titleWidth = "400")
 
 #Lateral
 lateral <- dashboardSidebar(sidebarMenu(uiOutput("selecao_companhia"),
                                         uiOutput("selecao_UF"),
                                         uiOutput("selecao_ramo"),
-                                        uiOutput("anos_futuros")), width = 200)
+                                        uiOutput("anos_futuros")), width = "250")
 
 #Corpo
-corpo <- dashboardBody(box(dygraphOutput("plot", height = "700"), 
-                           width = "100%",  
-                           title = "TESTE"))
+corpo <- dashboardBody(tags$head(
+                       tags$style(HTML(".shiny-output-error-validation {color: black; 
+                                                                        font-size: 30px;}"))),
+                       box(dygraphOutput("plot_projecao", height = "700"),
+                           width = "100%", 
+                           title = "Projeção de Sinistros (em escala logarítmica)",
+                           status = "primary", 
+                           solidHeader = TRUE))
 
-ui <- dashboardPage(cabecalho, lateral, corpo, skin = "black", 
+ui <- dashboardPage(cabecalho, lateral, corpo, skin = "black",
                     title = "Dashboard de Transportes")
 
 server <- function(input, output) {
@@ -41,10 +47,20 @@ server <- function(input, output) {
                                                                                                           "Transporte Internacional" = 622)))
   
   output$anos_futuros <- renderUI(noUiSliderInput("anos_selecionado", label = "Selecione os anos futuros", 
-                                                  min = 1, max = 30, value = 10, step = 1, orientation = "vertical", 
-                                                  direction = "rtl", height = 300))
+                                                  min = 1, max = 50, value = 5, step = 1, orientation = "vertical", 
+                                                  direction = "rtl", height = 500, 
+                                                  format = wNumbFormat(decimals = 0)))
   
-  projecao_sinistralidade <- reactive({
+  projecao_plot <- reactive({
+    
+   validate(
+     need(file.exists(paste0(getwd(), "/modelos/", lista_companhias$coenti[lista_companhias$Noenti == input$companhia_selecionada], 
+                             "-", 
+                             input$UF_selecionada, 
+                             "-", 
+                             input$ramo_selecionado, 
+                             ".rds")),
+          message = "Não há projeção disponível para essa combinação de parâmetros, em razão da falta de dados históricos. Tente outra companhia, UF e/ou ramo. "))
     
     modelo <- read_rds(paste0(getwd(), "/modelos/", lista_companhias$coenti[lista_companhias$Noenti == input$companhia_selecionada], 
                               "-", 
@@ -60,15 +76,16 @@ server <- function(input, output) {
       
     plot_projecao <- dyplot.prophet(modelo, projecao, 
                                     main = paste0(lista_companhias$Noenti[lista_companhias$Noenti == input$companhia_selecionada], " - ", 
-                                                  input$UF_selecionada),
+                                                  input$UF_selecionada, " - ", 
+                                                  input$ramo_selecionado),
                                     xlab = "Linha Temporal",
-                                    ylab = "Escala de Sinistralidade")
+                                    ylab = "Escala Logarítmica de Sinistralidade")
     
     return(plot_projecao)
     
   })
   
-  output$plot <- renderDygraph(projecao_sinistralidade())
+  output$plot_projecao <- renderDygraph(projecao_plot())
   
 }
 
